@@ -1,0 +1,159 @@
+-- Creating tables for PH-EmployeeDB
+CREATE TABLE departments (
+     dept_no VARCHAR(4) NOT NULL,
+     dept_name VARCHAR(40) NOT NULL,
+     PRIMARY KEY (dept_no),
+     UNIQUE (dept_name)
+);
+CREATE TABLE employees (
+	    emp_no INT NOT NULL,
+     birth_date DATE NOT NULL,
+     first_name VARCHAR NOT NULL,
+     last_name VARCHAR NOT NULL,
+     gender VARCHAR NOT NULL,
+     hire_date DATE NOT NULL,
+     PRIMARY KEY (emp_no)
+);
+CREATE TABLE dept_manager (
+dept_no VARCHAR(4) NOT NULL,
+    emp_no INT NOT NULL,
+    from_date DATE NOT NULL,
+    to_date DATE NOT NULL,
+FOREIGN KEY (emp_no) REFERENCES employees (emp_no),
+FOREIGN KEY (dept_no) REFERENCES departments (dept_no),
+    PRIMARY KEY (emp_no, dept_no)
+);
+CREATE TABLE dept_emp (
+   emp_no int NOT NULL,
+	dept_no VARCHAR(8) NOT NULL,
+    from_date DATE NOT NULL,
+    to_date DATE NOT NULL,
+FOREIGN KEY (emp_no) REFERENCES employees (emp_no),
+FOREIGN KEY (dept_no) REFERENCES departments (dept_no),
+    PRIMARY KEY (emp_no, dept_no)
+);
+CREATE TABLE salaries (
+  emp_no INT NOT NULL,
+  salary INT NOT NULL,
+  from_date DATE NOT NULL,
+  to_date DATE NOT NULL,
+  FOREIGN KEY (emp_no) REFERENCES employees (emp_no),
+  PRIMARY KEY (emp_no)
+);
+CREATE TABLE titles (
+  emp_no INT NOT NULL,
+  title VARCHAR(20) NOT NULL,
+  from_date DATE NOT NULL,
+  to_date DATE NOT NULL,
+  FOREIGN KEY (emp_no) REFERENCES employees (emp_no),
+  PRIMARY KEY (emp_no,title,from_date)	
+);	
+SELECT * FROM departments;
+SELECT * FROM employees;
+SELECT * FROM salaries;
+SELECT * FROM dept_manager;
+SELECT * FROM titles;
+SELECT * FROM dept_emp;;
+
+--Deliverable 1
+-- Number of employees retiring
+SELECT emp_no, first_name, last_name
+INTO retirement_info
+FROM employees
+WHERE (birth_date BETWEEN '1952-01-01' AND '1955-12-31');
+SELECT * FROM retirement_info;
+
+-- Joining employee and titles tables
+
+SELECT employees.emp_no,
+       employees.first_name,
+	   employees.last_name,
+	   titles.title,
+	   titles.from_date,
+	   titles.to_date
+INTO retirement_data
+FROM employees
+INNER JOIN titles
+ON employees.emp_no=titles.emp_no
+SELECT * FROM retirement_data;
+
+-- Filter employee as per there date fo birth:
+SELECT retirement_info.emp_no,
+       retirement_info.first_name,
+	   retirement_info.last_name,
+	   retirement_data.title,
+	   retirement_data.from_date,
+	   retirement_data.to_date
+INTO retirement_final
+FROM retirement_info
+INNER JOIN retirement_data
+ON retirement_info.emp_no=retirement_data.emp_no
+
+SELECT * FROM retirement_final;
+
+
+-- Arranging the data by employee number.
+SELECT emp_no,first_name,last_name,title,from_date,to_date
+INTO retirement_titles
+FROM retirement_final
+ORDER BY retirement_final.emp_no;
+SELECT * FROM retirement_titles;
+
+--SELECT * FROM retirement_filter_final
+--SELECT * FROM retirement_filter_order
+--SELECT * FROM retirement_titles
+
+SELECT retirement_titles.emp_no,
+		retirement_titles.first_name,
+		retirement_titles.last_name,
+		retirement_titles.title,
+		retirement_titles.from_date,
+        retirement_titles.to_date     
+INTO retirement_date
+FROM retirement_titles
+Where to_date='9999-01-01'
+
+SELECT * FROM retirement_date
+
+SELECT retirement_date.emp_no,
+		retirement_date.first_name,
+		retirement_date.last_name,
+		retirement_date.title
+INTO unique_titles
+From retirement_date
+SELECT * FROM unique_titles
+
+SELECT title, COUNT(*)number
+INTO retiring_titles
+FROM unique_titles
+Group by title
+Order by number desc
+SELECT * FROM retiring_titles
+
+
+---Deliverable 2
+select
+	distinct on (e.emp_no) e.emp_no,
+    e.last_name,
+	e.birth_date,
+	de.dept_no,
+	de.from_date,
+	de.to_date,
+    t.title,
+	t.from_date as title_from,
+	t.to_date as title_to
+INTO mentorship_eligibilty
+from
+	employees e
+	join dept_emp de on e.emp_no = de.emp_no
+	join titles t on e.emp_no = t.emp_no
+where
+	e.birth_date >= '1965-01-01'
+	and e.birth_date <= '1965-12-31'
+	and de.to_date = '9999-01-01'
+	and t.to_date = '9999-01-01'
+order by
+	e.emp_no
+limit 10
+SELECT * FROM mentorship_eligibilty
+ 
